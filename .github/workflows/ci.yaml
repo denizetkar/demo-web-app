@@ -1,0 +1,61 @@
+name: CI pipeline
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [master]
+
+jobs:
+  build_and_test_job:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the git repo
+        uses: actions/checkout@v4
+
+      - name: Cache node_modules
+        id: node-modules-cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      - name: Setup nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: "npm"
+          cache-dependency-path: "package-lock.json"
+
+      - name: Cache Chrome installation
+        uses: actions/cache@v4
+        id: chrome-cache
+        with:
+          path: /opt/hostedtoolcache/setup-chrome
+          key: ${{ runner.os }}-chrome-${{ hashFiles('.github/workflows/ci.yaml') }}
+
+      - name: Install Chrome (if not already cached)
+        id: setup-chrome
+        if: steps.chrome-cache.outputs.cache-hit != 'true'
+        uses: browser-actions/setup-chrome@v1
+        with:
+          install-dependencies: true
+
+      - name: Set Chrome executable path from cache (if available)
+        id: chrome-path-from-cache
+        if: steps.chrome-cache.outputs.cache-hit == 'true'
+        run: |
+          CHROME_PATH=$(find /opt/hostedtoolcache/setup-chrome -name chrome -type f | head -n 1)
+          echo "Found cached Chrome at: $CHROME_PATH"
+          echo "chrome-path=$CHROME_PATH" >> $GITHUB_OUTPUT
+
+      - name: Install npm dependencies (if not already cached)
+        if: steps.node-modules-cache.outputs.cache-hit != 'true'
+        run: npm ci --prefer-offline
+
+      - name: Run npm tests for CI
+        run: npm run test-ci
+        env:
+          CHROME_BIN: ${{ steps.chrome-cache.outputs.cache-hit == 'true' && steps.chrome-path-from-cache.outputs.chrome-path || steps.setup-chrome.outputs.chrome-path }}
