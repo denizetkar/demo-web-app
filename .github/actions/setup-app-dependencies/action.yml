@@ -1,0 +1,26 @@
+name: Setup app dependencies
+description: Install nodejs and npm dependencies
+
+runs:
+  using: composite
+  steps:
+    - name: Cache node_modules
+      id: node-modules-cache
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-modules-
+
+    - name: Setup nodejs
+      uses: actions/setup-node@v4
+      with:
+        node-version: "22.x"
+        cache: "npm"
+        cache-dependency-path: "package-lock.json"
+
+    - name: Install npm dependencies (if not already cached)
+      if: steps.node-modules-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: npm ci --prefer-offline

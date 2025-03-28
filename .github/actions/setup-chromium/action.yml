@@ -1,0 +1,32 @@
+name: Setup chromium
+description: Setup headless chromium browser
+
+outputs:
+  chrome-path:
+    description: The path to the chrome executable
+    value: ${{ steps.chrome-path-from-cache.outputs.chrome-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Cache Chrome installation
+      uses: actions/cache@v4
+      id: chrome-cache
+      with:
+        path: /opt/hostedtoolcache/setup-chrome
+        key: ${{ runner.os }}-chrome-${{ hashFiles('.github/workflows/ci.yaml') }}
+
+    - name: Install Chrome (if not already cached)
+      id: setup-chrome
+      if: steps.chrome-cache.outputs.cache-hit != 'true'
+      uses: browser-actions/setup-chrome@v1
+      with:
+        install-dependencies: true
+
+    - name: Set Chrome executable path
+      id: chrome-path-from-cache
+      shell: bash
+      run: |
+        CHROME_PATH=$(find /opt/hostedtoolcache/setup-chrome -name chrome -type f | head -n 1)
+        echo "Found cached Chrome at: $CHROME_PATH"
+        echo "chrome-path=$CHROME_PATH" >> $GITHUB_OUTPUT
