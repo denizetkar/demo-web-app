@@ -1,0 +1,45 @@
+name: Versioning
+on:
+  push:
+    branches: [master]
+
+jobs:
+  versioning_job:
+    name: Create a tag based version
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout the git repo
+        uses: actions/checkout@v4
+
+      - name: Setup app dependencies
+        uses: ./.github/actions/setup-app-dependencies
+
+      - name: Generate the version tag
+        id: version-tag
+        run: |
+          VERSION=$(date +%Y-%m-%d_%H-%M-%S)_$(git rev-parse --short HEAD)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Setup git identity
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Create the git tag
+        run: |
+          git tag -a "v${{ steps.version-tag.outputs.version }}" -m "Version ${{ steps.version-tag.outputs.version }}"
+
+      - name: Push the tagged version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "$ACT" != "true" ]; then
+            REMOTE_NAME=$(git remote | head -n 1)
+            git push "$REMOTE_NAME" "v${{ steps.version-tag.outputs.version }}"
+          else
+            echo "Skipping push because ACT=true"
+          fi
