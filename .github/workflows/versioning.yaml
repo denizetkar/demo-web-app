@@ -28,7 +28,7 @@ jobs:
 
       - name: Create the git tag
         run: |
-          git tag -a "v${{ steps.version-tag.outputs.VERSION }}" -m "Version ${{ steps.version-tag.outputs.VERSION }}"
+          git tag -a "${{ steps.version-tag.outputs.VERSION }}" -m "Version ${{ steps.version-tag.outputs.VERSION }}"
 
       - name: Push the tagged version
         if: ${{ env.ACT != 'true' }}
@@ -36,7 +36,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           REMOTE_NAME=$(git remote | head -n 1)
-          git push "$REMOTE_NAME" "v${{ steps.version-tag.outputs.VERSION }}"
+          git push "$REMOTE_NAME" "${{ steps.version-tag.outputs.VERSION }}"
 
       - name: Setup app dependencies
         uses: ./.github/actions/setup-app-dependencies
