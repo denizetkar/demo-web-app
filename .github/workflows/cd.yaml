@@ -1,0 +1,67 @@
+name: Deployment
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: environment
+      version:
+        description: "Artifact version (format: YYYY-mm-dd_HH-MM-SS_shortCommitSha)"
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    permissions:
+      contents: read # Required to download release assets
+      id-token: write # Required for OIDC authentication with AWS
+
+    steps:
+      - name: Download release asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Install GitHub CLI if needed
+          if ! command -v gh > /dev/null; then
+            echo "Installing GitHub CLI"
+            (type -p wget > /dev/null || (sudo apt update && sudo apt-get install wget -y)) \
+              && sudo mkdir -p -m 755 /etc/apt/keyrings \
+              && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+              && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+              && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+              && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+              && sudo apt update \
+              && sudo apt install gh -y
+          fi
+
+          # Download the release asset
+          echo "Downloading ${{ github.event.inputs.version }}.zip from release ${{ github.event.inputs.version }}"
+          gh release download ${{ github.event.inputs.version }} -R ${{ github.repository }} -p "${{ github.event.inputs.version }}.zip"
+
+      - name: Extract artifact
+        run: |
+          unzip ${{ github.event.inputs.version }}.zip -d ./extracted-app
+          ls -la ./extracted-app
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync ./extracted-app/browser \
+            s3://deniz-${{ github.event.inputs.environment }}-demo-web-app/ \
+            --delete
+
+      - name: Invalidate CloudFront cache
+        if: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID != '' }}
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
