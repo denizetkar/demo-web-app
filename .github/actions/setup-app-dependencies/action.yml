@@ -21,6 +21,6 @@ runs:
         cache-dependency-path: "package-lock.json"
 
     - name: Install npm dependencies (if not already cached)
-      if: steps.node-modules-cache.outputs.cache-hit != 'true'
+      if: ${{ steps.node-modules-cache.outputs.cache-hit != 'true' }}
       shell: bash
       run: npm ci --prefer-offline

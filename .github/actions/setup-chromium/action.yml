@@ -18,7 +18,7 @@ runs:
 
     - name: Install Chrome (if not already cached)
       id: setup-chrome
-      if: steps.chrome-cache.outputs.cache-hit != 'true'
+      if: ${{ steps.chrome-cache.outputs.cache-hit != 'true' }}
       uses: browser-actions/setup-chrome@v1
       with:
         install-dependencies: true

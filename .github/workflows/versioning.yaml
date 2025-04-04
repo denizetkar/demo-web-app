@@ -15,9 +15,6 @@ jobs:
       - name: Checkout the git repo
         uses: actions/checkout@v4
 
-      - name: Setup app dependencies
-        uses: ./.github/actions/setup-app-dependencies
-
       - name: Generate the version tag
         id: version-tag
         run: |
@@ -31,15 +28,39 @@ jobs:
 
       - name: Create the git tag
         run: |
-          git tag -a "v${{ steps.version-tag.outputs.version }}" -m "Version ${{ steps.version-tag.outputs.version }}"
+          git tag -a "v${{ steps.version-tag.outputs.VERSION }}" -m "Version ${{ steps.version-tag.outputs.VERSION }}"
 
       - name: Push the tagged version
+        if: ${{ env.ACT != 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ "$ACT" != "true" ]; then
-            REMOTE_NAME=$(git remote | head -n 1)
-            git push "$REMOTE_NAME" "v${{ steps.version-tag.outputs.version }}"
-          else
-            echo "Skipping push because ACT=true"
-          fi
+          REMOTE_NAME=$(git remote | head -n 1)
+          git push "$REMOTE_NAME" "v${{ steps.version-tag.outputs.VERSION }}"
+
+      - name: Setup app dependencies
+        uses: ./.github/actions/setup-app-dependencies
+
+      - name: Build the app
+        run: npm run build --configuration=production
+
+      - name: Create build artifact
+        run: |
+          cd dist
+          zip -r ../${{ steps.version-tag.outputs.VERSION }}.zip demo-web-app/
+          cd ..
+
+      - name: Create GitHub Release
+        if: ${{ env.ACT != 'true' }}
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: ${{ steps.version-tag.outputs.VERSION }}
+          tag_name: ${{ steps.version-tag.outputs.VERSION }}
+          files: ${{ steps.version-tag.outputs.VERSION }}.zip
+          fail_on_unmatched_files: true
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          make_latest: true
