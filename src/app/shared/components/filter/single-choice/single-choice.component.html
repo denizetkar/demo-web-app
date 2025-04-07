@@ -1,1 +1,25 @@
-single-choice works!
+<div class="container">
+  <span class="label">{{ config().label }}</span>
+  <ng-select
+    [ngModel]="config().selection"
+    (ngModelChange)="changeSelection($event)"
+    [addTag]="false"
+    appearance="outline"
+    [closeOnSelect]="false"
+    [clearable]="true"
+    dropdownPosition="bottom"
+    [fixedPlaceholder]="false"
+    [hideSelected]="false"
+    [multiple]="true"
+    [maxSelectedItems]="1"
+    [placeholder]="config().label"
+    [searchable]="true"
+    [clearSearchOnAdd]="false"
+    [deselectOnClick]="true"
+    [editableSearchTerm]="true"
+  >
+    @for (option of config().options; track option.label) {
+      <ng-option [value]="option.idx">{{ option.label }}</ng-option>
+    }
+  </ng-select>
+</div>

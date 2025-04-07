@@ -15,7 +15,8 @@ export interface ChoiceFilter<T, S> extends FilterBase<S> {
   options: Option<T>[];
 }
 
-export interface SingleChoiceFilter extends ChoiceFilter<string, number> {
+export interface SingleChoiceFilter
+  extends ChoiceFilter<string, number | undefined> {
   type: 'single-choice';
 }
 

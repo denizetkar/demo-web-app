@@ -24,6 +24,28 @@ import { SingleChoiceComponent } from './single-choice/single-choice.component';
 export class FilterComponent {
   protected readonly configs: Filter[] = [
     {
+      type: 'single-choice',
+      label: 'Single choice 1',
+      options: [
+        {
+          idx: 0,
+          label: 'Option 1',
+          value: 'val1',
+        },
+        {
+          idx: 1,
+          label: 'Option 2',
+          value: 'val2',
+        },
+        {
+          idx: 2,
+          label: 'Option 3',
+          value: 'val3',
+        },
+      ],
+      selection: undefined,
+    },
+    {
       type: 'multi-choice',
       label: 'Multi choice 1',
       options: [

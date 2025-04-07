@@ -1,0 +1,56 @@
+:host {
+  display: block;
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+
+  .label {
+    font-weight: 500;
+    max-width: 120px;
+    max-height: 200px;
+    overflow: auto;
+    width: fit-content;
+  }
+}
+
+.container ::ng-deep {
+  .ng-select {
+    .ng-select-container {
+      .ng-value-container {
+        flex-direction: row;
+        gap: 4px;
+
+        padding: 2px 4px !important;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+
+        .ng-placeholder,
+        .ng-input {
+          top: unset !important;
+          padding: 0 !important;
+        }
+
+        .ng-input {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          min-width: 50px;
+
+          left: unset !important;
+
+          > input {
+            padding: 0;
+          }
+        }
+
+        .ng-value {
+          margin: 0 !important;
+        }
+      }
+    }
+  }
+}

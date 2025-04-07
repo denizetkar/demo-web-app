@@ -1,10 +1,14 @@
 <div class="flex-row single-row main-container">
-  <mat-icon svgIcon="mdiFilter"></mat-icon>
+  <mat-icon svgIcon="mdiFilter" class="icon"></mat-icon>
   <div class="flex-row multi-row filter-container">
     @for (config of configs; track config.label; let idx = $index) {
       @switch (config.type) {
         @case (SINGLE_CHOICE_TYPE) {
-          <app-single-choice class="single-choice"></app-single-choice>
+          <app-single-choice
+            class="single-choice"
+            [config]="config"
+            (onSelectionChange)="onSelectionChange($event, idx)"
+          ></app-single-choice>
         }
         @case (MULTI_CHOICE_TYPE) {
           <app-multi-choice
