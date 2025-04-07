@@ -1,0 +1,40 @@
+:host {
+  display: block;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 8px;
+
+  &.single-row {
+    flex-wrap: nowrap;
+  }
+
+  &.multi-row {
+    flex-wrap: wrap;
+    align-content: space-evenly;
+  }
+}
+
+.main-container {
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.filter-container {
+  flex-grow: 1;
+  overflow: scroll-x;
+
+  .single-choice,
+  .multi-choice {
+    max-width: 400px;
+  }
+
+  .date-range {
+    max-width: 200px;
+  }
+}

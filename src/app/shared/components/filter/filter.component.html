@@ -1,0 +1,24 @@
+<div class="flex-row single-row main-container">
+  <mat-icon svgIcon="mdiFilter"></mat-icon>
+  <div class="flex-row multi-row filter-container">
+    @for (config of configs; track config.label; let idx = $index) {
+      @switch (config.type) {
+        @case (SINGLE_CHOICE_TYPE) {
+          <app-single-choice class="single-choice"></app-single-choice>
+        }
+        @case (MULTI_CHOICE_TYPE) {
+          <app-multi-choice
+            class="multi-choice"
+            [config]="config"
+            (onSelectionChange)="onSelectionChange($event, idx)"
+          ></app-multi-choice>
+        }
+        @case (DATE_RANGE_TYPE) {
+          <app-date-range class="date-range"></app-date-range>
+        }
+      }
+    }
+  </div>
+  <button (click)="applyFilters()">Apply</button>
+  <button (click)="resetFilters()">Reset</button>
+</div>
